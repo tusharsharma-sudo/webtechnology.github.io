@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Job Portal — Professional</title>
+<style>
+  :root{
+    --primary:#4F46E5;
+    --muted:#6b7280;
+    --bg:#eef1ff;
+    --card:#ffffff;
+    --accent:#2563eb;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:var(--bg);
+    color:#0b1220;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* Home screen */
+  #homeScreen{
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:linear-gradient(135deg,var(--primary),#6b63ff);
+    color:#fff;
+    gap:20px;
+    text-align:center;
+    padding:28px;
+  }
+  #homeScreen h1{font-size:40px;margin:0;letter-spacing:0.2px}
+  #homeScreen p{margin:0;color:rgba(255,255,255,0.9)}
+  .btn-main{
+    background:#fff;color:var(--primary);
+    border:none;padding:12px 26px;border-radius:10px;font-size:18px;cursor:pointer;font-weight:600;
+    box-shadow:0 10px 30px rgba(79,70,229,0.16);
+    transition:transform .18s,box-shadow .18s;
+  }
+  .btn-main:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(79,70,229,0.2)}
+
+  /* Header */
+  header{
+    background:var(--primary);color:#fff;padding:16px 20px;text-align:center;font-weight:700;font-size:20px;
+    box-shadow:0 3px 10px rgba(15,23,42,0.06);
+  }
+
+  /* Layout */
+  .wrap{
+    max-width:1200px;margin:28px auto;padding:0 18px;display:grid;grid-template-columns:300px 1fr 320px;gap:20px;
+  }
+  @media (max-width:980px){ .wrap{ grid-template-columns:1fr; } .applied-panel{order:3} .filters{order:2} }
+
+  .panel{
+    background:var(--card);border-radius:12px;padding:16px;box-shadow:0 8px 24px rgba(16,24,40,0.06);
+  }
+
+  /* Filters */
+  .filters h3{margin:0 0 10px 0;color:var(--primary)}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .field input,.field select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px}
+
+  /* Jobs grid */
+  .jobs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  @media (max-width:900px){ .jobs-grid{grid-template-columns:1fr} }
+  .job-card{
+    display:flex;gap:12px;align-items:center;padding:14px;border-radius:12px;background:linear-gradient(180deg,#fff,#fcfdff);
+    border:1px solid rgba(11,18,32,0.03);transition:transform .18s,box-shadow .18s;cursor:pointer;
+  }
+  .job-card:hover{transform:translateY(-8px);box-shadow:0 22px 48px rgba(12,18,28,0.08)}
+  .logo{width:64px;height:64px;flex:0 0 64px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .logo img{display:block;width:100%;height:100%;object-fit:cover}
+  .job-info{flex:1}
+  .job-title{font-weight:700;margin:0 0 4px 0}
+  .job-meta{color:var(--muted);font-size:13px;margin:0}
+  .badges{margin-top:8px}
+  .badge{display:inline-block;background:rgba(37,99,235,0.08);color:var(--accent);padding:6px 8px;border-radius:999px;font-size:12px;margin-right:8px}
+
+  /* Modal */
+  #modal{display:none;position:fixed;inset:0;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;padding:20px}
+  .modal-card{width:560px;max-width:100%;background:#fff;border-radius:12px;padding:18px;box-shadow:0 30px 80px rgba(2,6,23,0.4)}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .modal-head h3{margin:0}
+  .modal-body{margin-top:12px}
+  .modal-body p{color:#334155}
+  .form-row{display:flex;gap:8px}
+  .form-row input,.form-row textarea{flex:1;padding:10px;border:1px solid #e6e9ef;border-radius:8px;margin-top:8px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+  .btn{background:var(--primary);color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
+  .btn:hover{filter:brightness(.95)}
+  .close-btn{background:#777}
+
+  /* Applied panel */
+  .applied-panel h3{margin:0 0 8px 0}
+  .applied-item{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:#fbfcff;border:1px solid rgba(11,18,32,0.03);margin-bottom:10px}
+  .applied-item small{color:var(--muted);font-size:13px}
+
+  /* Footer */
+  footer{text-align:center;color:var(--muted);margin:28px 0 60px 0;font-size:13px}
+
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<section id="homeScreen">
+  <h1>Find your next opportunity</h1>
+  <p>Fast apply. Track applications. All data saved locally for this demo.</p>
+  <button class="btn-main" onclick="openJobs()">Look For Jobs</button>
+</section>
+
+<!-- JOB PAGE -->
+<section id="jobPage" style="display:none">
+  <header>Professional Job Board</header>
+
+  <div class="wrap" id="mainWrap">
+    <!-- LEFT: Filters -->
+    <aside class="panel filters">
+      <h3>Search & Filters</h3>
+      <div class="field">
+        <label>Keyword</label>
+        <input id="search" placeholder="role or company..." oninput="filterJobs()">
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <input id="location" placeholder="city or remote" oninput="filterJobs()">
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select id="type" onchange="filterJobs()">
+          <option value="">Any</option>
+          <option>Full-time</option>
+          <option>Part-time</option>
+          <option>Internship</option>
+          <option>Contract</option>
+        </select>
+      </div>
+      <div style="margin-top:8px"><button class="btn" onclick="resetFilters()" style="background:#fff;color:var(--primary);border:1px solid rgba(11,18,32,0.06)">Reset</button></div>
+    </aside>
+
+    <!-- CENTER: Jobs -->
+    <main>
+      <div class="panel" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+        <div><strong id="resultsCount">0</strong> opportunities</div>
+        <div style="color:var(--muted)">Click a job to view details & apply</div>
+      </div>
+
+      <div class="jobs-grid panel" id="jobsGrid" style="padding:16px"></div>
+    </main>
+
+    <!-- RIGHT: Applied -->
+    <aside class="panel applied-panel">
+      <h3>Applied Jobs</h3>
+      <div id="appliedList" style="margin-top:12px"></div>
+      <div style="margin-top:10px;color:var(--muted);font-size:13px">Applications are stored locally. Use "Cancel" to remove.</div>
+    </aside>
+  </div>
+
+  <footer>JOB BOARD AGGREGATOR</footer>
+</section>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div>
+        <h3 id="mTitle"></h3>
+        <div id="mMeta" style="color:var(--muted);font-size:13px;margin-top:6px"></div>
+      </div>
+      <div id="mLogo" style="width:64px;height:64px"></div>
+    </div>
+
+    <div class="modal-body">
+      <p id="mDesc"></p>
+
+      <label style="font-size:13px;color:var(--muted)">Your name</label>
+      <input id="appName" placeholder="Full name">
+
+      <label style="font-size:13px;color:var(--muted);margin-top:8px">Email</label>
+      <input id="appEmail" placeholder="name@example.com">
+
+      <label style="font-size:13px;color:var(--muted);margin-top:8px">Short note (optional)</label>
+      <textarea id="appNote" rows="3" placeholder="Brief message"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn close-btn" onclick="closeModal()">Close</button>
+      <button class="btn" onclick="submitApplication()">Submit Application</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- Utilities ---------------- */
+function svgDataUri(text, bg){
+  // create 2-letter initials
+  const initials = text.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const svg = <svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><rect rx='18' width='100%' height='100%' fill='${bg}'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='46' fill='white'>${initials}</text></svg>;
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+}
+
+/* ---------------- Jobs dataset (24 jobs) ---------------- */
+const jobs = [
+  {title:"Frontend Developer", company:"NovaSoft", location:"Bengaluru", type:"Full-time", desc:"Build modern UI components using React." , color:'#2563eb'},
+  {title:"Backend Developer", company:"CloudWave", location:"Remote", type:"Full-time", desc:"Design and maintain backend services.", color:'#0ea5a4'},
+  {title:"Full Stack Engineer", company:"StackForge", location:"Hyderabad", type:"Full-time", desc:"Work across frontend and backend.", color:'#ef4444'},
+  {title:"Data Analyst", company:"InsightWorks", location:"Kolkata", type:"Full-time", desc:"Create dashboards and insights.", color:'#7c3aed'},
+  {title:"Product Manager", company:"VisionCorp", location:"Mumbai", type:"Full-time", desc:"Own product planning and delivery.", color:'#0ea5a4'},
+  {title:"Network Engineer", company:"NetLink", location:"Pune", type:"Full-time", desc:"Manage network infra and configs.", color:'#10b981'},
+  {title:"HR Recruiter", company:"PeopleFirst", location:"Delhi", type:"Part-time", desc:"Handle sourcing and interviews.", color:'#f59e0b'},
+  {title:"Flutter Developer", company:"AppMakers", location:"Kochi", type:"Full-time", desc:"Build cross-platform mobile apps.", color:'#14b8a6'},
+  {title:"ML Engineer", company:"AIMinds", location:"Remote", type:"Full-time", desc:"Train and productionize ML models.", color:'#065f46'},
+  {title:"Cybersecurity Expert", company:"SecureNet", location:"Hyderabad", type:"Full-time", desc:"Monitor and secure systems.", color:'#0f172a'},
+  {title:"DevOps Engineer", company:"StackBridge", location:"Remote", type:"Full-time", desc:"Manage CI/CD and infra.", color:'#ef4444'},
+  {title:"UI/UX Designer", company:"DesignLab", location:"Bengaluru", type:"Full-time", desc:"Design interfaces and prototypes.", color:'#db2777'},
+  {title:"Content Writer", company:"WriteLab", location:"Remote", type:"Part-time", desc:"Write content & documentation.", color:'#7dd3fc'},
+  {title:"Cloud Architect", company:"NimbusCloud", location:"Bengaluru", type:"Full-time", desc:"Design cloud solutions.", color:'#2563eb'},
+  {title:"QA Tester", company:"TestHive", location:"Chennai", type:"Internship", desc:"Execute test plans and automation.", color:'#f97316'},
+
+  // 9 more to add (total 24)
+  {title:"SRE Engineer", company:"ReliantOps", location:"Bengaluru", type:"Full-time", desc:"Improve reliability & incidents.", color:'#0ea5a4'},
+  {title:"Data Engineer", company:"PipeWorks", location:"Hyderabad", type:"Full-time", desc:"Build ETL and data lakes.", color:'#2563eb'},
+  {title:"Performance Marketer", company:"AdFlux", location:"Delhi", type:"Full-time", desc:"Optimize paid campaigns.", color:'#f97316'},
+  {title:"Technical Writer", company:"DocuCraft", location:"Remote", type:"Part-time", desc:"API docs and guides.", color:'#7dd3fc'},
+  {title:"Solutions Architect", company:"ArchSys", location:"Mumbai", type:"Full-time", desc:"Customer-facing technical lead.", color:'#065f46'},
+  {title:"Growth Analyst", company:"ScaleLab", location:"Pune", type:"Full-time", desc:"Analyze conversion funnels.", color:'#06b6d4'},
+  {title:"Brand Designer", company:"MoodStudio", location:"Kochi", type:"Full-time", desc:"Visual identity and campaigns.", color:'#db2777'},
+  {title:"SEO Specialist", company:"Searchly", location:"Remote", type:"Contract", desc:"Improve organic traffic.", color:'#7dd3fc'},
+  {title:"Product Manager", company:"LaunchPad", location:"Mumbai", type:"Full-time", desc:"Lead product roadmap.", color:'#0ea5a4'}
+];
+
+/* ---------------- Rendering ---------------- */
+const jobsGrid = document.getElementById('jobsGrid');
+const resultsCount = document.getElementById('resultsCount');
+let selectedJob = null;
+
+function renderJobs(list){
+  jobsGrid.innerHTML = '';
+  list.forEach(job => {
+    const logo = svgDataUri(job.company, job.color || '#94a3b8');
+    const card = document.createElement('div');
+    card.className = 'job-card';
+    card.innerHTML = `
+      <div class="logo"><img src="${logo}" alt="${job.company}"></div>
+      <div class="job-info">
+        <div class="job-title">${job.title}</div>
+        <div class="job-meta">${job.company} • ${job.location}</div>
+        <div class="badges"><span class="badge">${job.type}</span></div>
+      </div>
+    `;
+    card.onclick = () => openModal(job, logo);
+    jobsGrid.appendChild(card);
+  });
+  resultsCount.textContent = list.length;
+}
+
+/* ---------------- Show initial ---------------- */
+renderJobs(jobs);
+
+/* ---------------- Open/close and modal actions ---------------- */
+function openJobs(){
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('jobPage').style.display = 'block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function openModal(job, logo){
+  selectedJob = job;
+  document.getElementById('mTitle').textContent = job.title;
+  document.getElementById('mMeta').textContent = ${job.company} • ${job.location} • ${job.type};
+  document.getElementById('mDesc').textContent = job.desc;
+  document.getElementById('mLogo').innerHTML = <img src="${logo}" style="width:64px;height:64px;border-radius:8px">;
+  document.getElementById('appName').value = '';
+  document.getElementById('appEmail').value = '';
+  document.getElementById('appNote').value = '';
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('modal').style.display = 'none';
+}
+
+/* ---------------- Applications (localStorage) ---------------- */
+function submitApplication(){
+  const name = document.getElementById('appName').value.trim();
+  const email = document.getElementById('appEmail').value.trim();
+  const note = document.getElementById('appNote').value.trim();
+  if(!name || !email){
+    alert('Please enter your name and email.');
+    return;
+  }
+
+  const applied = JSON.parse(localStorage.getItem('applied_jobs') || '[]');
+  // prevent duplicate applications by same email + job
+  const exists = applied.find(a => a.title === selectedJob.title && a.company === selectedJob.company && a.email === email);
+  if(exists){
+    alert('You already applied for this job with this email.');
+    return;
+  }
+
+  applied.push({
+    title: selectedJob.title,
+    company: selectedJob.company,
+    location: selectedJob.location,
+    type: selectedJob.type,
+    applicant: name,
+    email,
+    note,
+    appliedAt: new Date().toISOString()
+  });
+
+  localStorage.setItem('applied_jobs', JSON.stringify(applied));
+  closeModal();
+  loadApplied();
+  alert('Application submitted and saved locally.');
+}
+
+/* ---------------- Applied list ---------------- */
+function loadApplied(){
+  const list = JSON.parse(localStorage.getItem('applied_jobs') || '[]');
+  const container = document.getElementById('appliedList');
+  container.innerHTML = '';
+  if(list.length === 0){
+    container.innerHTML = '<div style="color:var(--muted)">No applications yet.</div>';
+    return;
+  }
+  list.forEach((a, i) => {
+    const logo = svgDataUri(a.company,'#94a3b8');
+    const item = document.createElement('div');
+    item.className = 'applied-item';
+    item.innerHTML = `
+      <div style="width:56px;flex:0 0 56px"><img src="${logo}" style="width:56px;height:56px;border-radius:8px"></div>
+      <div style="flex:1">
+        <div style="font-weight:700">${a.title} — ${a.company}</div>
+        <small>${a.applicant} • ${a.email}</small><br>
+        <small style="color:var(--muted)">Applied: ${new Date(a.appliedAt).toLocaleString()}</small>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button style="background:#fff;color:var(--primary);border:1px solid rgba(11,18,32,0.06);padding:8px 10px;border-radius:8px;cursor:pointer" onclick="viewApplication(${i})">View</button>
+        <button style="background:#ef4444;color:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer" onclick="cancelApplication(${i})">Cancel</button>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function viewApplication(i){
+  const list = JSON.parse(localStorage.getItem('applied_jobs') || '[]');
+  const a = list[i];
+  if(!a) return;
+  // open modal with values prefilled
+  selectedJob = {title:a.title, company:a.company, location:a.location, type:a.type, desc: a.note || ''};
+  openModal(selectedJob, svgDataUri(a.company,'#94a3b8'));
+  document.getElementById('appName').value = a.applicant;
+  document.getElementById('appEmail').value = a.email;
+  document.getElementById('appNote').value = a.note;
+}
+
+function cancelApplication(i){
+  if(!confirm('Cancel this application?')) return;
+  const list = JSON.parse(localStorage.getItem('applied_jobs') || '[]');
+  list.splice(i,1);
+  localStorage.setItem('applied_jobs', JSON.stringify(list));
+  loadApplied();
+}
+
+/* ---------------- Filtering ---------------- */
+function filterJobs(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const loc = document.getElementById('location').value.trim().toLowerCase();
+  const type = document.getElementById('type').value;
+  const filtered = jobs.filter(j => {
+    return (q === '' || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q))
+      && (loc === '' || j.location.toLowerCase().includes(loc))
+      && (type === '' || j.type === type);
+  });
+  renderJobs(filtered);
+}
+
+function resetFilters(){
+  document.getElementById('search').value = '';
+  document.getElementById('location').value = '';
+  document.getElementById('type').value = '';
+  renderJobs(jobs);
+}
+
+/* ---------------- Init ---------------- */
+loadApplied();
+</script>
+</body>
+</html>
